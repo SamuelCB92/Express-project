@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo with useCallback</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useCallback } = React;
+        
+        function TodoItem({ todo, onToggle, onDelete }) {
+            console.log(`Rendering todo: ${todo.text}`);
+            
+            return (
+                <div style={{ 
+                    padding: '10px', 
+                    border: '1px solid #ccc', 
+                    margin: '5px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <span style={{ 
+                        textDecoration: todo.completed ? 'line-through' : 'none',
+                        color: todo.completed ? '#999' : '#000'
+                    }}>
+                        {todo.text}
+                    </span>
+                    <div>
+                        <button onClick={() => onToggle(todo.id)}>
+                            {todo.completed ? 'Undo' : 'Complete'}
+                        </button>
+                        <button onClick={() => onDelete(todo.id)}>Delete</button>
+                    </div>
+                </div>
+            );
+        }
+        
+        function TodoList() {
+            const [todos, setTodos] = useState([
+                { id: 1, text: 'Learn useCallback', completed: false },
+                { id: 2, text: 'Build todo app', completed: false },
+                { id: 3, text: 'Master React hooks', completed: false }
+            ]);
+            
+            const [filter, setFilter] = useState('all');
+            
+            const handleToggle = useCallback((id) => {
+                setTodos(todos.map(todo => 
+                    todo.id === id ? { ...todo, completed: !todo.completed } : todo
+                ));
+            }, [todos]);
+            
+            const handleDelete = useCallback((id) => {
+                setTodos(todos.filter(todo => todo.id !== id));
+            }, [todos]);
+            
+            return (
+                <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+                    <h2>Todo List</h2>
+                    
+                    <div style={{ marginBottom: '20px' }}>
+                        <button onClick={() => setFilter('all')}>All</button>
+                        <button onClick={() => setFilter('active')}>Active</button>
+                        <button onClick={() => setFilter('completed')}>Completed</button>
+                    </div>
+                    
+                    {todos.map(todo => (
+                        <TodoItem 
+                            key={todo.id}
+                            todo={todo}
+                            onToggle={handleToggle}
+                            onDelete={handleDelete}
+                        />
+                    ))}
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<TodoList />, document.getElementById('root'));
+    </script>
+</body>
+</html>

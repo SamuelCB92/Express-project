@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Filter with useMemo</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+        
+        const products = [
+            { id: 1, name: 'Laptop', category: 'Electronics', price: 999, rating: 4.5 },
+            { id: 2, name: 'T-Shirt', category: 'Clothing', price: 25, rating: 4.2 },
+            { id: 3, name: 'Phone', category: 'Electronics', price: 699, rating: 4.7 },
+            { id: 4, name: 'Jeans', category: 'Clothing', price: 80, rating: 4.1 },
+            { id: 5, name: 'Headphones', category: 'Electronics', price: 150, rating: 4.3 },
+            { id: 6, name: 'Sneakers', category: 'Shoes', price: 120, rating: 4.4 },
+            { id: 7, name: 'Watch', category: 'Accessories', price: 200, rating: 4.6 },
+            { id: 8, name: 'Backpack', category: 'Accessories', price: 60, rating: 4.0 }
+        ];
+        
+        function ProductList({ products }) {
+            console.log('ProductList rendered!');
+            
+            return (
+                <div>
+                    <h3>Products ({products.length})</h3>
+                    {products.map(product => (
+                        <div key={product.id} style={{ 
+                            padding: '10px', 
+                            border: '1px solid #ccc', 
+                            margin: '5px',
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                        }}>
+                            <span>{product.name} - ${product.price}</span>
+                            <span>⭐ {product.rating}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        
+        function ProductCatalog() {
+            const [category, setCategory] = useState('all');
+            const [priceRange, setPriceRange] = useState('all');
+            const [sortBy, setSortBy] = useState('name');
+            
+            const filteredProducts = useMemo(() => {
+                console.log('Expensive calculation running!');
+                
+                return products
+                    .filter(product => category === 'all' || product.category === category)
+                    .filter(product => {
+                        if (priceRange === 'all') return true;
+                        if (priceRange === 'low') return product.price < 100;
+                        if (priceRange === 'medium') return product.price >= 100 && product.price < 500;
+                        if (priceRange === 'high') return product.price >= 500;
+                        return true;
+                    })
+                    .sort((a, b) => {
+                        if (sortBy === 'name') return a.name.localeCompare(b.name);
+                        if (sortBy === 'price') return a.price - b.price;
+                        if (sortBy === 'rating') return b.rating - a.rating;
+                        return 0;
+                    });
+            }, [category, priceRange, sortBy]);
+            
+            return (
+                <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+                    <h2>Product Catalog</h2>
+                    
+                    <div style={{ marginBottom: '20px' }}>
+                        <label>Category: </label>
+                        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                            <option value="all">All</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Shoes">Shoes</option>
+                            <option value="Accessories">Accessories</option>
+                        </select>
+                        
+                        <label style={{ marginLeft: '20px' }}>Price: </label>
+                        <select value={priceRange} onChange={(e) => setPriceRange(e.target.value)}>
+                            <option value="all">All</option>
+                            <option value="low">Under $100</option>
+                            <option value="medium">$100 - $500</option>
+                            <option value="high">Over $500</option>
+                        </select>
+                        
+                        <label style={{ marginLeft: '20px' }}>Sort: </label>
+                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                            <option value="name">Name</option>
+                            <option value="price">Price</option>
+                            <option value="rating">Rating</option>
+                        </select>
+                    </div>
+                    
+                    <ProductList products={filteredProducts} />
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<ProductCatalog />, document.getElementById('root'));
+    </script>
+</body>
+</html>

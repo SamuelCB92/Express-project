@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Counter with useReducer</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useReducer } = React;
+        
+        const initialState = {
+            count: 0,
+            history: [],
+            canUndo: false,
+            canRedo: false
+        };
+        
+        function counterReducer(state, action) {
+            switch (action.type) {
+                case 'INCREMENT':
+                    return {
+                        count: state.count + 1,
+                        history: [...state.history, '+1'],
+                        canUndo: true,
+                        canRedo: false
+                    };
+                
+                case 'DECREMENT':
+                    return {
+                        count: state.count - 1,
+                        history: [...state.history, '-1'],
+                        canUndo: true,
+                        canRedo: false
+                    };
+                
+                case 'RESET':
+                    return {
+                        count: 0,
+                        history: [...state.history, 'RESET'],
+                        canUndo: true,
+                        canRedo: false
+                    };
+                
+                case 'UNDO':
+                    if (state.history.length === 0) return state;
+                    
+                    const newHistory = [...state.history];
+                    const lastAction = newHistory.pop();
+                    
+                    let newCount = state.count;
+                    if (lastAction === '+1') {
+                        newCount -= 1;
+                    } else if (lastAction === '-1') {
+                        newCount += 1;
+                    } else if (lastAction === 'RESET') {
+                        newCount = 0;
+                    }
+                    
+                    return {
+                        count: newCount,
+                        history: newHistory,
+                        canUndo: newHistory.length > 0,
+                        canRedo: true
+                    };
+                
+                default:
+                    return state;
+            }
+        }
+        
+        function Counter() {
+            const [state, dispatch] = useReducer(counterReducer, initialState);
+            
+            return (
+                <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+                    <h2>Counter with History</h2>
+                    <p>Current Count: <strong>{state.count}</strong></p>
+                    
+                    <div style={{ margin: '10px 0' }}>
+                        <button onClick={() => dispatch({ type: 'INCREMENT' })}>
+                            +1
+                        </button>
+                        <button onClick={() => dispatch({ type: 'DECREMENT' })}>
+                            -1
+                        </button>
+                        <button onClick={() => dispatch({ type: 'RESET' })}>
+                            Reset
+                        </button>
+                        <button 
+                            onClick={() => dispatch({ type: 'UNDO' })}
+                            disabled={!state.canUndo}
+                            style={{ 
+                                opacity: state.canUndo ? 1 : 0.5,
+                                marginLeft: '10px'
+                            }}
+                        >
+                            Undo
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <h3>History:</h3>
+                        <p>{state.history.join(', ') || 'No actions yet'}</p>
+                    </div>
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<Counter />, document.getElementById('root'));
+    </script>
+</body>
+</html>
